@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Presupuesto Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Exo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --success: #4cc9f0;
+            --warning: #f72585;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Exo', sans-serif;
+            background-color: #f5f7ff;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .simulador-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .simulador-orcamento {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .simulador-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .simulador-header h2 {
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+        }
+        
+        .simulador-header p {
+            font-weight: 300;
+            opacity: 0.9;
+        }
+        
+        .simulador-body {
+            padding: 2rem;
+        }
+        
+        .form-section {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1.5rem;
+        }
+        
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        
+        .form-section-title {
+            font-weight: 600;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-section-title svg {
+            margin-right: 10px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Exo', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background-color: #f9fafc;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        .checkbox-group {
+            margin-bottom: 0.8rem;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .checkbox-input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        
+        .checkmark {
+            display: inline-block;
+            height: 20px;
+            width: 20px;
+            background-color: #f9fafc;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .checkbox-label:hover .checkmark {
+            border-color: var(--accent);
+        }
+        
+        .checkbox-input:checked ~ .checkmark {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+        
+        .checkbox-input:checked ~ .checkmark:after {
+            display: block;
+        }
+        
+        .checkmark:after {
+            left: 7px;
+            top: 3px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        
+        .btn-calcular {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 16px;
+            width: 100%;
+            border-radius: 8px;
+            font-family: 'Exo', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn-calcular:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+        
+        .btn-calcular:active {
+            transform: translateY(0);
+        }
+        
+        .resultado {
+            background: linear-gradient(135deg, #f5f7ff, #e6ebff);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .resultado h3 {
+            color: var(--dark);
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+        
+        .valor-orcamento {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 1rem 0;
+        }
+        
+        .detalhes-orcamento {
+            text-align: left;
+            margin-top: 1.5rem;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .detalhes-orcamento h4 {
+            color: var(--secondary);
+            margin-bottom: 0.8rem;
+            font-size: 1.1rem;
+        }
+        
+        .detalhes-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed #eee;
+        }
+        
+        .detalhes-item:last-child {
+            border-bottom: none;
+        }
+        
+        .detalhes-item strong {
+            color: var(--dark);
+        }
+        
+        .btn-contato {
+            display: inline-block;
+            background: var(--warning);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(247, 37, 133, 0.3);
+        }
+        
+        .btn-contato:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(247, 37, 133, 0.4);
+        }
+        
+        .secoes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .secoes-group {
+            background: #f9fafc;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        
+        .textarea-group {
+            margin-top: 1.5rem;
+        }
+        
+        .textarea-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .promocao-desconto {
+            background: linear-gradient(135deg, #f5f7ff, #e6ebff);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+            border: 2px dashed var(--warning);
+        }
+        
+        .mensagem-promocional {
+            font-size: 1.2rem;
+            color: var(--warning);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .valor-com-desconto {
+            font-size: 1.1rem;
+            color: var(--dark);
+        }
+        
+        .valor-com-desconto span {
+            font-weight: 700;
+            color: var(--success);
+        }
+        
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .secoes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .simulador-header h2 {
+                font-size: 1.6rem;
+            }
+            
+            .valor-orcamento {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+     <div class="simulador-container">
+        <div class="simulador-orcamento">
+            <div class="simulador-header">
+                <h2>SIMULADOR DE PRESUPUESTO</h2>
+                <p>Complete los detalles de su proyecto y reciba una estimación instantánea</p>
+            </div>
+            
+            <div class="simulador-body">
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="currentColor"/>
+                            <path d="M12.5 7H11V13L16.2 16.2L17 14.9L12.5 12.2V7Z" fill="currentColor"/>
+                        </svg>
+                        Información Básica
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="servico">Tipo de Proyecto</label>
+                            <select id="servico" class="form-control">
+                                <option value="landing-page">Landing Page</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="complexidade">Nivel de Complejidad</label>
+                            <select id="complexidade" class="form-control">
+                                <option value="basica">Básico - Diseño Simple (Precio base $150)</option>
+                                <option value="media" selected>Medio - Diseño Personalizado (Precio base $200)</option>
+                                <option value="avancada">Avanzado - Soluciones Complejas (Precio base $250)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V5H19V19Z" fill="currentColor"/>
+                            <path d="M7 12H9V17H7V12ZM11 7H13V17H11V7ZM15 10H17V17H15V10Z" fill="currentColor"/>
+                        </svg>
+                        Alcance del Proyecto
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="paginas">Cantidad de Páginas</label>
+                            <select id="paginas" class="form-control">
+                                <option value="1">1 página (incluida en el precio base)</option>
+                                <option value="2">2 páginas (+ $30)</option>
+                                <option value="3">3 páginas (+ $60)</option>
+                                <option value="4">4 páginas (+ $90)</option>
+                                <option value="5">5 páginas (+ $120)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="idiomas">Cantidad de Idiomas</label>
+                            <select id="idiomas" class="form-control">
+                                <option value="1">Solo Español</option>
+                                <option value="2">2 idiomas (+ $100)</option>
+                                <option value="3">3 idiomas (+ $200)</option>
+                                <option value="4">4 idiomas (+ $300)</option>
+                                <option value="5">5 idiomas (+ $400)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>¿Necesita contenido textual?</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="checkbox-input" id="textos-originais">
+                                <span class="checkmark"></span>
+                                Textos Originales - Redacción Profesional (+ $30)
+                            </label>
+                        </div>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="checkbox-input" id="revisao-textos">
+                                <span class="checkmark"></span>
+                                Revisión de Textos Existentes (sin costo adicional)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección para elegir secciones de la landing page -->
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 13h6c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v8c0 .55.45 1 1 1zm0 8h6c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1zm10 0h6c.55 0 1-.45 1-1v-8c0-.55-.45-1-1-1h-6c-.55 0-1 .45-1 1v8c0 .55.45 1 1 1zM13 4v4c0 .55.45 1 1 1h6c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1h-6c-.55 0-1 .45-1 1z" fill="currentColor"/>
+                        </svg>
+                        Secciones de la Landing Page
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Seleccione las secciones que desea incluir:</label>
+                        <div class="secoes-grid">
+                            <div class="secoes-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" name="secoes" value="Hero Section">
+                                    <span class="checkmark"></span>
+                                    Sección Principal (Hero)
+                                </label>
+                            </div>
+                            <div class="secoes-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" name="secoes" value="Beneficios">
+                                    <span class="checkmark"></span>
+                                    Beneficios / Ventajas
+                                </label>
+                            </div>
+                            <div class="secoes-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" name="secoes" value="Como Funciona">
+                                    <span class="checkmark"></span>
+                                    Cómo funciona / Proceso
+                                </label>
+                            </div>
+                            <div class="secoes-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" name="secoes" value="Testimonios">
+                                    <span class="checkmark"></span>
+                                    Testimonios / Prueba Social
+                                </label>
+                            </div>
+                            <div class="secoes-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" name="secoes" value="Sobre la Empresa">
+                                    <span class="checkmark"></span>
+                                    Sobre la empresa
+                                </label>
+                            </div>
+                            <div class="secoes-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" name="secoes" value="Presentación del Producto">
+                                    <span class="checkmark"></span>
+                                    Presentación del producto/servicio
+                                </label>
+                            </div>
+                            <div class="secoes-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" name="secoes" value="CTA Reforzado">
+                                    <span class="checkmark"></span>
+                                    Call-to-action reforzado
+                                </label>
+                            </div>
+                            <div class="secoes-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" name="secoes" value="FAQ">
+                                    <span class="checkmark"></span>
+                                    FAQ / Preguntas Frecuentes
+                                </label>
+                            </div>
+                            <div class="secoes-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" name="secoes" value="Pie de página">
+                                    <span class="checkmark"></span>
+                                    Pie de página con información
+                                </label>
+                            </div>
+                            <div class="secoes-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" name="secoes" value="Otra">
+                                    <span class="checkmark"></span>
+                                    Otra (especifique abajo)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group textarea-group">
+                        <label for="informacoes-adicionais">Información Adicional</label>
+                        <textarea id="informacoes-adicionais" class="form-control" placeholder="Describa cualquier información adicional sobre su proyecto, como colores preferidos, referencias de diseño, funcionalidades específicas u otras secciones que desee incluir."></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="currentColor"/>
+                            <path d="M12.5 7H11V13L16.2 16.2L17 14.9L12.5 12.2V7Z" fill="currentColor"/>
+                        </svg>
+                        Cronograma
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="prazo">Plazo de Entrega</label>
+                        <select id="prazo" class="form-control">
+                            <option value="normal">Normal - 7 días (sin costo adicional)</option>
+                            <option value="prioritario">Prioritario - 5 días (+ $50)</option>
+                            <option value="urgente">Urgente - 3 días (+ $100)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" fill="currentColor"/>
+                        </svg>
+                        Funcionalidades Adicionales
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Integraciones (sin costo adicional)</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" id="integracao-formulario">
+                                    <span class="checkmark"></span>
+                                    Formulario de contacto
+                                </label>
+                            </div>
+                             <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" id="integracao-whatsapp">
+                                    <span class="checkmark"></span>
+                                    WhatsApp Business
+                                </label>
+                            </div>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" id="integracao-redes-sociais">
+                                    <span class="checkmark"></span>
+                                    Redes Sociales
+                                </label>
+                            </div>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" id="integracao-facebook-pixel">
+                                    <span class="checkmark"></span>
+                                    Facebook Pixel
+                                </label>
+                            </div>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" id="integracao-google-analytics">
+                                    <span class="checkmark"></span>
+                                    Google Analytics
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Recursos Avanzados</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" id="recurso-blog">
+                                    <span class="checkmark"></span>
+                                    Área de Blog (+ $150)
+                                </label>
+                            </div>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" id="recurso-membros">
+                                    <span class="checkmark"></span>
+                                    Área de Miembros (+ $100)
+                                </label>
+                            </div>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" id="recurso-pagamentos">
+                                    <span class="checkmark"></span>
+                                    Sistema de Pagos (+ $150)
+                                </label>
+                            </div>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="checkbox-input" id="recurso-agendamento">
+                                    <span class="checkmark"></span>
+                                    Agendamiento Online (+ $80)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="currentColor"/>
+                            <path d="M12.5 7H11V13L16.2 16.2L17 14.9L12.5 12.2V7Z" fill="currentColor"/>
+                        </svg>
+                        Mantenimiento + Hosting
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="manutencao">Paquete de Mantenimiento + Hosting</label>
+                        <select id="manutencao" class="form-control">
+                            <option value="nenhum">No lo necesito</option>
+                            <option value="mensal">Mantenimiento + Hosting por Mes ($50/mes)</option>
+                            <option value="anual">Mantenimiento + Hosting por Año - 20% descuento - ($40/mes = $480)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="btn-calcular" id="calcular">
+                    CALCULAR MI PRESUPUESTO
+                </button>
+                
+                <div class="resultado" id="resultado">
+                    <h3>SU PRESUPUESTO ESTIMADO</h3>
+                    <div class="valor-orcamento" id="valor-orcamento">$ 0,00</div>
+                    
+                    <div class="promocao-desconto">
+                        <div class="mensagem-promocional">
+                            🎉 <strong>¡Envíe un mensaje ahora y obtenga un 20% DE DESCUENTO!</strong> 🎉
+                        </div>
+                        <div class="valor-com-desconto">
+                            Valor promocional: <span id="valor-desconto">$ 0,00</span> (válido por 24h)
+                        </div>
+                    </div>
+                    
+                    <p>Valor aproximado basado en sus selecciones</p>
+                    
+                    <div class="detalhes-orcamento">
+                        <h4>Detalles del Presupuesto</h4>
+                        <div class="detalhes-item">
+                            <span>Tipo de Proyecto:</span>
+                            <strong id="detalhe-projeto">-</strong>
+                        </div>
+                        <div class="detalhes-item">
+                            <span>Complejidad:</span>
+                            <strong id="detalhe-complexidade">-</strong>
+                        </div>
+                        <div class="detalhes-item">
+                            <span>Páginas:</span>
+                            <strong id="detalhe-paginas">-</strong>
+                        </div>
+                        <div class="detalhes-item">
+                            <span>Idiomas:</span>
+                            <strong id="detalhe-idiomas">-</strong>
+                        </div>
+                        <div class="detalhes-item">
+                            <span>Secciones Incluidas:</span>
+                            <strong id="detalhe-secoes">-</strong>
+                        </div>
+                        <div class="detalhes-item">
+                            <span>Plazo:</span>
+                            <strong id="detalhe-prazo">-</strong>
+                        </div>
+                        <div class="detalhes-item">
+                            <span>Recursos Adicionales:</span>
+                            <strong id="detalhe-recursos">-</strong>
+                        </div>
+                        <div class="detalhes-item">
+                            <span>Mantenimiento:</span>
+                            <strong id="detalhe-manutencao">-</strong>
+                        </div>
+                        <div class="detalhes-item">
+                            <span>Información Adicional:</span>
+                            <strong id="detalhe-informacoes">-</strong>
+                        </div>
+                    </div>
+                    
+                    <button id="btn-enviar-whatsapp" class="btn-contato">ENVIAR PRESUPUESTO POR WHATSAPP</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+             // Calcula presupuesto
+            document.getElementById('calcular').addEventListener('click', function() {
+                calcularPresupuesto();
+            });
+            
+            // Botón de enviar para WhatsApp
+            document.getElementById('btn-enviar-whatsapp').addEventListener('click', function() {
+                enviarPorWhatsApp();
+            });
+            
+            function calcularPresupuesto() {
+                // Valores base por tipo de servicio
+                const valoresBase = {
+                    'website': 250 * 3,
+                    'loja-virtual': 250 * 5,
+                    'app-mobile': 250 * 6,
+                    'sistema-web': 250 * 8,
+                    'landing-page': 200, // Valor base para landing page
+                    'blog': 250 * 2,
+                    'portal': 250 * 4
+                };
+                
+                // Multiplicadores de complejidad
+                const complexidadeMultiplier = {
+                    'basica': 0.7,
+                    'media': 1,
+                    'avancada': 1.3,
+                    'premium': 2
+                };
+                
+                // Valor por página adicional (30 dólares por página extra)
+                const valorPorPaginaExtra = 30;
+                
+                // Valor por idioma adicional (100 dólares)
+                const valorPorIdioma = 100;
+                
+                // Valores adicionales por plazo
+                const prazoValues = {
+                    'normal': 0,
+                    'prioritario': 50,
+                    'urgente': 100
+                };
+                
+                // Valores adicionales
+                const valoresAdicionais = {
+                    'textos-originais': 30,
+                    'revisao-textos': 0,
+                    'integracao-formulario': 0,
+                    'integracao-whatsapp': 0,
+                    'integracao-redes-sociais': 0,
+                    'integracao-facebook-pixel': 0,
+                    'integracao-google-analytics': 0,
+                    'recurso-blog': 150,
+                    'recurso-membros': 100,
+                    'recurso-pagamentos': 150,
+                    'recurso-agendamento': 100
+                };
+                
+                // Valores de mantenimiento
+                const manutencaoValues = {
+                    'nenhum': 0,
+                    'mensal': 50,
+                    'anual': 40 * 12 // 40/mes * 12 meses
+                };
+                
+                // Obtener valores del formulario
+                const servico = document.getElementById('servico').value;
+                const servicoText = document.getElementById('servico').options[document.getElementById('servico').selectedIndex].text;
+                const paginas = parseInt(document.getElementById('paginas').value);
+                const complexidade = document.getElementById('complexidade').value;
+                const complexidadeText = document.getElementById('complexidade').options[document.getElementById('complexidade').selectedIndex].text.split(' ')[0];
+                const idiomas = parseInt(document.getElementById('idiomas').value);
+                const prazo = document.getElementById('prazo').value;
+                const prazoText = document.getElementById('prazo').options[document.getElementById('prazo').selectedIndex].text;
+                const manutencao = document.getElementById('manutencao').value;
+                const manutencaoText = document.getElementById('manutencao').options[document.getElementById('manutencao').selectedIndex].text;
+                const informacoesAdicionais = document.getElementById('informacoes-adicionais').value;
+                
+                // Obtener secciones seleccionadas
+                const secoesCheckboxes = document.querySelectorAll('input[name="secoes"]:checked');
+                const secoesSelecionadas = Array.from(secoesCheckboxes).map(cb => cb.value);
+                
+                // Verificar checkboxes marcados
+                let extras = 0;
+                let recursosSelecionados = [];
+                const checkboxes = document.querySelectorAll('.checkbox-input:checked');
+                
+                checkboxes.forEach(checkbox => {
+                    extras += valoresAdicionais[checkbox.id] || 0;
+                    const label = checkbox.closest('.checkbox-label').textContent.trim();
+                    recursosSelecionados.push(label);
+                });
+                
+                // Calcular valor base
+                let valor = valoresBase[servico];
+                
+                // Agregar valor por páginas extras (la primera ya está incluida en el valor base)
+                if(paginas > 1) {
+                    valor += (paginas - 1) * valorPorPaginaExtra;
+                }
+                
+                // Agregar valor por idiomas extras (el primero ya está incluido)
+                if(idiomas > 1) {
+                    valor += (idiomas - 1) * valorPorIdioma;
+                }
+                
+                // Aplicar multiplicador de complejidad
+                valor = valor * complexidadeMultiplier[complexidade];
+                
+                // Agregar valor por plazo
+                valor += prazoValues[prazo];
+                
+                // Agregar extras
+                valor += extras;
+                
+                // Agregar mantenimiento
+                valor += manutencaoValues[manutencao];
+                
+                // Redondear a múltiplo de 50
+                valor = Math.round(valor / 50) * 50;
+                
+                // Mostrar resultado
+                document.getElementById('valor-orcamento').textContent = '$ ' + valor.toLocaleString('es-ES');
+                
+                // Calcular y mostrar valor con descuento
+                const valorComDesconto = valor * 0.8; // 20% de descuento
+                document.getElementById('valor-desconto').textContent = '$ ' + Math.round(valorComDesconto / 50) * 50 .toLocaleString('es-ES');
+                document.getElementById('detalhe-projeto').textContent = servicoText;
+                document.getElementById('detalhe-complexidade').textContent = complexidadeText;
+                document.getElementById('detalhe-paginas').textContent = paginas + (paginas === 1 ? ' página' : ' páginas');
+                document.getElementById('detalhe-idiomas').textContent = idiomas + (idiomas === 1 ? ' idioma' : ' idiomas');
+                document.getElementById('detalhe-secoes').textContent = secoesSelecionadas.length > 0 ? secoesSelecionadas.join(', ') : 'Ninguna sección seleccionada';
+                document.getElementById('detalhe-prazo').textContent = prazoText.split(' (')[0];
+                document.getElementById('detalhe-recursos').textContent = recursosSelecionados.length > 0 ? recursosSelecionados.join(', ') : 'Ningún recurso adicional';
+                document.getElementById('detalhe-manutencao').textContent = manutencaoText;
+                document.getElementById('detalhe-informacoes').textContent = informacoesAdicionais || 'Ninguna información adicional';
+                
+                document.getElementById('resultado').style.display = 'block';
+                
+                // Desplazamiento suave al resultado
+                document.getElementById('resultado').scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            function enviarPorWhatsApp() {
+                // Obtener los valores mostrados en el resultado
+                const tipoProjeto = document.getElementById('detalhe-projeto').textContent;
+                const complexidade = document.getElementById('detalhe-complexidade').textContent;
+                const paginas = document.getElementById('detalhe-paginas').textContent;
+                const idiomas = document.getElementById('detalhe-idiomas').textContent;
+                const secoes = document.getElementById('detalhe-secoes').textContent;
+                const prazo = document.getElementById('detalhe-prazo').textContent;
+                const recursos = document.getElementById('detalhe-recursos').textContent;
+                const manutencao = document.getElementById('detalhe-manutencao').textContent;
+                const informacoes = document.getElementById('detalhe-informacoes').textContent;
+                const valor = document.getElementById('valor-orcamento').textContent;
+                const valorDesconto = document.getElementById('valor-desconto').textContent;
+                
+                // Construir el mensaje
+                const mensaje = `*SOLICITUD DE PRESUPUESTO*%0A%0A` +
+                                 `*Tipo de Proyecto:* ${tipoProjeto}%0A` +
+                                 `*Complejidad:* ${complexidade}%0A` +
+                                 `*Cantidad de Páginas:* ${paginas}%0A` +
+                                 `*Idiomas:* ${idiomas}%0A` +
+                                 `*Secciones Incluidas:* ${secoes}%0A` +
+                                 `*Plazo de Entrega:* ${prazo}%0A` +
+                                 `*Recursos Adicionales:* ${recursos}%0A` +
+                                 `*Mantenimiento:* ${manutencao}%0A` +
+                                 `*Información Adicional:* ${informacoes}%0A%0A` +
+                                 `*VALOR ESTIMADO:* ${valor}%0A` +
+                                 `*VALOR CON DESCUENTO:* ${valorDesconto}%0A%0A` +
+                                 `Vi que tengo un 20% de descuento, quisiera confirmar este presupuesto o resolver dudas.`;
+                
+                // Número de WhatsApp (reemplazar con su número)
+                const numeroWhatsApp = '5512992526242';
+                
+                // URL para abrir WhatsApp
+                const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
+                
+                // Abrir WhatsApp en una nueva pestaña
+                window.open(urlWhatsApp, '_blank');
+            }
+        });
+    </script>
+</body>
+</html>
